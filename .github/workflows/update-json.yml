@@ -1,0 +1,32 @@
+name: Update JSON Count
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'  # Bu cron ifadesi, iş akışını her 5 dakikada bir tetikleyecektir.
+
+jobs:
+  update-json:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Increment count in JSON file
+        run: |
+          # Mevcut JSON dosyasını oku
+          count=$(jq '.count' data.json)
+
+          # Sayıyı 1 artır
+          new_count=$((count + 1))
+
+          # Yeni sayıyı JSON dosyasına yaz
+          jq ".count = $new_count" data.json > temp.json && mv temp.json data.json
+
+      - name: Commit changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add data.json
+          git commit -m "Increase count to $new_count"
+          git push
